@@ -1,19 +1,40 @@
-  const filePath =
-    "/var/www/pterodactyl/app/Http/Controllers/Api/Client/TwoFactorController.php";
+#!/usr/bin/env bash
+# installprotect12.sh
+# Proteksi TwoFactorController: hanya admin ID 1 yang bisa atur 2FA.
 
-  const phpCode = `<?php
+set -euo pipefail
 
-namespace Pterodactyl\\Http\\Controllers\\Api\\Client;
+REMOTE_PATH="/var/www/pterodactyl/app/Http/Controllers/Api/Client/TwoFactorController.php"
+TIMESTAMP=$(date -u +"%Y-%m-%d-%H-%M-%S")
+BACKUP_PATH="${REMOTE_PATH}.bak_${TIMESTAMP}"
 
-use Carbon\\Carbon;
-use Illuminate\\Http\\Request;
-use Illuminate\\Http\\Response;
-use Illuminate\\Http\\JsonResponse;
-use Pterodactyl\\Facades\\Activity;
-use Pterodactyl\\Services\\Users\\TwoFactorSetupService;
-use Pterodactyl\\Services\\Users\\ToggleTwoFactorService;
-use Illuminate\\Contracts\\Validation\\Factory as ValidationFactory;
-use Symfony\\Component\\HttpKernel\\Exception\\BadRequestHttpException;
+echo "🚀 Memasang proteksi TwoFactorController (hanya Admin ID 1)..."
+
+# Backup file lama kalau ada
+if [ -f "$REMOTE_PATH" ]; then
+  mv "$REMOTE_PATH" "$BACKUP_PATH"
+  echo "📦 Backup file lama dibuat di $BACKUP_PATH"
+fi
+
+# Pastikan direktori ada & permission masuk akal
+mkdir -p "$(dirname "$REMOTE_PATH")"
+chmod 755 "$(dirname "$REMOTE_PATH")"
+
+# Tulis ulang isi TwoFactorController.php
+cat > "$REMOTE_PATH" << 'EOF'
+<?php
+
+namespace Pterodactyl\Http\Controllers\Api\Client;
+
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
+use Pterodactyl\Facades\Activity;
+use Pterodactyl\Services\Users\TwoFactorSetupService;
+use Pterodactyl\Services\Users\ToggleTwoFactorService;
+use Illuminate\Contracts\Validation\Factory as ValidationFactory;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class TwoFactorController extends ClientApiController
 {
@@ -85,4 +106,12 @@ class TwoFactorController extends ClientApiController
 
         return new JsonResponse([], Response::HTTP_NO_CONTENT);
     }
-}`.trim();
+}
+EOF
+
+chmod 644 "$REMOTE_PATH"
+
+echo "✅ TwoFactorController berhasil dipasang!"
+echo "📂 Lokasi file: $REMOTE_PATH"
+echo "🗂️ Backup file lama: $BACKUP_PATH (jika sebelumnya ada)"
+echo "🔒 Hanya Admin utama (ID 1) yang bisa oprek Two-Step Verification."
