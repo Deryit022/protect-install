@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # install-protect-menu.sh
-# Menyediakan menu untuk memilih installprotect1..9 dari repo Deryit022/protect-install
+# Menyediakan menu untuk memilih installprotect1..13 dari repo Deryit022/protect-install
 # Gunakan dengan hati-hati. Review file yang diunduh sebelum menjalankan.
 
 set -euo pipefail
 
 REPO="https://raw.githubusercontent.com/Deryit022/protect-install/main"
 DEST="/opt/protect-install"
-SCRIPTS=(installprotect1.sh installprotect2.sh installprotect3.sh installprotect4.sh installprotect5.sh installprotect6.sh installprotect7.sh installprotect8.sh installprotect9.sh)
+SCRIPTS=(installprotect1.sh installprotect2.sh installprotect3.sh installprotect4.sh installprotect5.sh installprotect6.sh installprotect7.sh installprotect8.sh installprotect9.sh installprotect10.sh installprotect11.sh installprotect12.sh installprotect13.sh)
 
 log() { printf "%s\n" "$*"; }
 
@@ -65,22 +65,35 @@ prepare() {
 }
 
 show_menu() {
+  clear
+  cat <<'BANNER'
+█▄█ ▄▀█ █░█░█ █░█░█ █▀█ █▀▀ █▀▀ █▀▀
+░█░ █▀█ ▀▄▀▄▀ ▀▄▀▄▀ █▄█ █▀░ █▀░ █▄▄
+BANNER
+
   cat <<EOF
 
-Pilih instalasi:
-  1) installprotect1
-  2) installprotect2
-  3) installprotect3
-  4) installprotect4
-  5) installprotect5
-  6) installprotect6
-  7) installprotect7
-  8) installprotect8
-  9) installprotect9
-  0) Keluar
+═══════════════════════════════════════
+        Protect Install Launcher
+═══════════════════════════════════════
+
+  1)  🔐  installprotect1
+  2)  🔐  installprotect2
+  3)  🔐  installprotect3
+  4)  🔐  installprotect4
+  5)  🔐  installprotect5
+  6)  🔐  installprotect6
+  7)  🔐  installprotect7
+  8)  🔐  installprotect8
+  9)  🔐  installprotect9
+ 10)  🛡️  installprotect10
+ 11)  🛡️  installprotect11
+ 12)  🛡️  installprotect12
+ 13)  🛡️  installprotect13
+  0)  ❌  Keluar
 
 EOF
-  printf "Masukkan pilihan (0-9): "
+  printf "👉 Masukkan pilihan (0-13) lalu tekan Enter: "
 }
 
 run_choice() {
@@ -96,13 +109,11 @@ run_choice() {
   fi
 
   log "=== Menjalankan $script ==="
-  # Tampilkan header kecil untuk review singkat
   log "Preview 20 baris pertama $script:"
   sed -n '1,20p' "$script" || true
   log "Jika sudah oke, skrip akan dieksekusi."
+  echo
 
-  # Eksekusi skrip dengan bash; gunakan sudo bila diperlukan untuk commands root
-  # Menjalankan di subshell agar skrip dapat menggunakan exit tanpa mematikan menu
   (bash "$script")
   local rc=$?
   if [ $rc -ne 0 ]; then
@@ -120,13 +131,17 @@ main_loop() {
     read -r choice || { echo; break; }
     case "$choice" in
       0) log "Keluar."; exit 0 ;;
-      [1-9])
-        idx=$((choice-1))
-        run_choice "$idx"
-        log "=================================="
-        ;;
       *)
-        log "Input tidak valid. Masukkan angka 0-9."
+        if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le "${#SCRIPTS[@]}" ]; then
+          idx=$((choice-1))
+          run_choice "$idx"
+          log "=================================="
+          printf "Tekan Enter untuk kembali ke menu..."
+          read -r _ || true
+        else
+          log "Input tidak valid. Masukkan angka 0-${#SCRIPTS[@]}."
+          sleep 1
+        fi
         ;;
     esac
   done
